@@ -23,7 +23,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
 	// Parse cases.csv file from github
 	// https://github.com/PleadsDS/cip13/blob/main/cases.csv
-	Papa.parse("https://github.com/PleadsDS/cip13/blob/main/cases.csv", {
+	Papa.parse("./cases.csv", {
 		download: true,
 		complete: function(results) {
 			console.log("Finished:", results.data);

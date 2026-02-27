@@ -131,7 +131,7 @@ const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent",
 		Papa.parse("https://github.com/PleadsDS/cip13/blob/main/cases.csv", {
 			download: true,
 			complete: function(results) {
-				// console.log("Finished:", results.data);
+				console.log("Finished:", results.data);
 				caseArray = results;
 				caseCount = caseArray.data.length - 1
 			}

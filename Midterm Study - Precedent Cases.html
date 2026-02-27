@@ -124,6 +124,20 @@ const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent",
 	
 	randomizeButton.addEventListener("click", randomizeDisplayedCase);
 
+
+	function autoPapaParse() {
+		// Parse cases.csv file from github
+		// https://github.com/PleadsDS/cip13/blob/main/cases.csv
+		Papa.parse("https://github.com/PleadsDS/cip13/blob/main/cases.csv", {
+			download: true,
+			complete: function(results) {
+				// console.log("Finished:", results.data);
+				caseArray = results;
+				caseCount = caseArray.data.length - 1
+			}
+		});
+});
+	}
 	
 
 	function handleFileSelection(event) {

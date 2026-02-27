@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="description" content="CIP 13 Midterm Study: Precedent Cases">
+    <title>CIP 13 Midterm Study: Precedent Cases</title>
+	
+	<script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+	<!-- <script src="script.js"></script> -->
+	<style>
+		body {
+			padding: 20px;
+		}
+	
+		.container {
+			display: grid;
+			grid-template-columns: 80px 3fr 65px;
+			grid-template-rows: 1fr 1.2fr 1fr 0.6fr 1fr 1fr 3fr 2fr 1fr 1fr;
+			grid-auto-rows: max-content
+			grid-gap: 1px;
+			width: 450px;		
+			border: 1px solid black;
+		}
+	
+		.container div {
+			overflow: hidden;
+			box-shadow: 0 0 0 0px black;
+			padding: 2px;
+		}
+	
+		#header { grid-area: 1 / 1 / 2 / 4; }
+		#subjectLabel { grid-area: 2 / 1 / 3 / 2; }
+		#subjectContent { grid-area: 2 / 2 / 3 / 3; }
+		#subjectHideBox { grid-area: 2 / 3 / 3 / 4; }
+		#plaintiffLabel { grid-area: 3 / 1 / 4 / 2; }
+		#plaintiffContent { grid-area: 3 / 2 / 4 / 3; }
+		#vdiv { grid-area: 4 / 2 / 5 / 3; }
+		#defendantLabel { grid-area: 5 / 1 / 6 / 2; }
+		#defendantContent { grid-area: 5 / 2 / 6 / 3; }
+		#summaryLabel { grid-area: 6 / 2 / 7 / 3; }
+		#summaryContent { grid-area: 7 / 1 / 8 / 4; }
+		#memoryHideBox { grid-area: 8 / 1 / 9 / 2; }
+		#memoryContent { grid-area: 8 / 2 / 9 / 4; }
+		#filterLabel { grid-area: 9 / 1 / 10 / 2; }
+		#filterDropdown { grid-area: 9 / 2 / 10 / 3; }
+		#buttonDiv { grid-area: 10 / 2 / 11 / 3; } 
+		
+		.fileLoader {
+			margin: 5px;
+		}
+		
+		.centerText { 
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			text-align: center; 
+		}
+		.boldIt { font-weight: bold; }
+		.italIt { font-style: italic; }
+
+    </style>
+</head>
+<body>
+
+<table>
+
+	<div class="container">
+		<div id="header" class="centerText boldIt">Header</div>
+		<div id="subjectLabel" class="boldIt">Subject:</div>
+		<div id="subjectContent" class="centerText">Subject TBD</div>
+		<div id="subjectHideBox">
+			<input type="checkbox" id="hideSubject" name="hideSubject" value="HideSubject">
+			<label for="hideSubject">Hide</label><br>
+		</div>
+		<div id="plaintiffLabel" class="boldIt">Plaintiff:</div>
+		<div id="plaintiffContent" class="centerText">Plaintiff TBD</div>
+		<div id="vdiv" class="centerText italIt">v.</div>
+		<div id="defendantLabel" class="boldIt">Defendant:</div>
+		<div id="defendantContent" class="centerText">Defendant TBD</div>
+		<div id="summaryLabel" class="centerText boldIt">Summary</div>
+		<div id="summaryContent" class="centerText">Summary TBD</div>
+		<div id="memoryHideBox">
+			<input type="checkbox" id="hideMemory" name="hideMemory" value="HideMemory">
+			<label for="hideMemory">Hide</label><br>		
+		</div>
+		<div id="memoryContent">Memory</div>
+		<div id="filterLabel"><label for="filterType">Test:</label></div>
+		<div id="filterDropdown">
+			<select name="filterType" id="filterType">
+				<option value="none">None</option>
+				<option value="pvd">PvD</option>
+				<option value="summary">Summary</option>
+				<option value="random">Random</option>
+			</select>
+		</div>
+		<div id="buttonDiv"><button type="button" id="randomizeButton">Randomize</button></div>
+	
+	</div>
+
+	<div class="fileLoader">
+		<div class="fileDisplay" id="fileDisplay"></div>
+		<input type="file" id="file-input" />
+	</div>
+
+<script>
+const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent", "#summaryContent", "#memoryContent"]
+	
+	const filterIds = ["#plaintiffContent", "#defendantContent", "#summaryContent"]
+	
+	const fileInput = document.getElementById("file-input");
+	const fileDisplay = document.getElementById("fileDisplay");
+	let initialMessage = "";
+	let caseArray = [];
+	let caseCount = 0;
+	fileInput.addEventListener("change", handleFileSelectionPapa);
+
+	const hideSummaryCheck = document.getElementById("hideSubject");
+	const hideMemoryCheck = document.getElementById("hideMemory");
+	
+	hideSummaryCheck.addEventListener("change", toggleShowingSubject);
+	hideMemoryCheck.addEventListener("change", toggleShowingMemory);
+
+	const randomizeButton = document.getElementById("randomizeButton");
+	
+	randomizeButton.addEventListener("click", randomizeDisplayedCase);
+
+	
+
+	function handleFileSelection(event) {
+		const file = event.target.files[0];
+		//fileContentDisplay.textContent = ""; // Clear previous file content
+
+		// Validate file existence and type
+		if (!file) {
+		showMessage("No file selected. Please choose a file.", "error");
+		return;
+		}
+
+		if (!file.type.startsWith("text")) {
+		showMessage("Unsupported file type. Please select a text file.", "error");
+		return;
+		}
+
+		// Read the file
+		const reader = new FileReader();
+		reader.onload = () => {
+			initialMessage = reader.result;
+			fileDisplay.textContent = reader.result;
+			};
+			reader.onerror = () => {
+				showMessage("Error reading the file. Please try again.", "error");
+			};
+			reader.readAsText(file);
+		  
+			// Parse the dang thing into an array
+			console.log("File read");
+			console.log(initialMessage);
+	}
+	
+	function handleFileSelectionPapa(event) {
+		const file = event.target.files[0];
+		
+		if (!file) {
+			showMessage("No file selected. Please choose a file.", "error");
+			return;
+			}
+
+		if (!file.type.startsWith("text")) {
+			showMessage("Unsupported file type. Please select a text file.", "error");
+			return;
+		}
+		
+		// Parse local CSV file
+		Papa.parse(file, {
+			complete: function(results) {
+				// console.log("Finished:", results.data);
+				caseArray = results;
+				caseCount = caseArray.data.length - 1
+			}
+		});
+	}
+
+	function randomizeDisplayedCase() {
+		let caseRow = getRandomRowNumber();
+		let newCase = caseArray.data[caseRow];
+		
+		// Change font colours as needed
+		// Reset first
+		$.each(filterIds, function(i) {
+			$(filterIds[i]).css('color', 'black');
+			$("#vdiv").css('color', 'black');
+		});
+		
+		// Check for values what need whiting
+		// Filter type - filterType
+		switch($("#filterType").val()) {
+			case "none":
+				break;
+			case "pvd":
+				$(filterIds[0]).css('color', 'white');
+				$(filterIds[1]).css('color', 'white');
+				$("#vdiv").css('color', 'white');
+				break;
+			case "summary":
+				$(filterIds[2]).css('color', 'white');
+				break;
+			case "random":
+				const rnd = Math.floor((Math.random() * 2) + 1);
+				if (rnd == 1) {
+					$(filterIds[0]).css('color', 'white');
+					$(filterIds[1]).css('color', 'white');
+					$("#vdiv").css('color', 'white');
+				} else {
+					$(filterIds[2]).css('color', 'white');
+				}
+				break;
+		}
+		
+		// Assign text values	
+		$.each(contentIds, function(i) {
+			$(contentIds[i]).text(newCase[i]);
+		});
+		
+	}
+	
+	function toggleShowingSubject() {
+		console.log("Toggling subject display");
+		if ($("#hideSubject").is(":checked")) {
+			$("#subjectContent").css('color', 'white');
+		} else {
+			$("#subjectContent").css('color', 'black');
+		}
+	}
+	
+	function toggleShowingMemory() {
+		console.log("Toggling memory display");
+		if ($("#hideMemory").is(":checked")) {
+			$("#memoryContent").css('color', 'white');
+		} else {
+			$("#memoryContent").css('color', 'black');
+		}
+	}
+	
+	function getRandomRowNumber() {
+		return Math.floor(Math.random() * caseCount) + 1;
+	}  
+</script>
+
+</body>
+</html>

@@ -103,7 +103,8 @@
 	</div>
 
 <script>
-const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent", "#summaryContent", "#memoryContent"]
+window.addEventListener("DOMContentLoaded", (event) => {
+	const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent", "#summaryContent", "#memoryContent"]
 	
 	const filterIds = ["#plaintiffContent", "#defendantContent", "#summaryContent"]
 	
@@ -254,6 +255,7 @@ const contentIds = ["#subjectContent", "#plaintiffContent", "#defendantContent",
 	function getRandomRowNumber() {
 		return Math.floor(Math.random() * caseCount) + 1;
 	} 
+});
 </script>
 
 </body>
